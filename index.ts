@@ -10,6 +10,7 @@ import { tokenCommand } from "./lib/token";
 import { putCommand } from "./lib/put";
 import { copyCommand } from "./lib/copy";
 import { apiCommand } from "./lib/api";
+import { pingCommand } from "./lib/ping";
 
 const cli = yargs(hideBin(Bun.argv)).version("1.0");
 
@@ -21,5 +22,6 @@ listCommand(cli);
 delCommand(cli);
 headCommand(cli);
 copyCommand(cli);
+pingCommand(cli);
 
 cli.parse();
