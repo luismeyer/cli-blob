@@ -10,6 +10,12 @@ export function createApiKey(name: string): string {
   return `${ApiPrefix}${name}`;
 }
 
+const SetCommand = "set";
+const RmCommand = "rm";
+const LsCommand = "ls";
+const UseCommand = "use";
+const CurrentCommand = "curr";
+
 export function apiCommand(yargs: Argv<{}>) {
   yargs.command(
     "api <sub> [name] [url]",
@@ -19,7 +25,13 @@ export function apiCommand(yargs: Argv<{}>) {
         .positional("sub", {
           description: "Subcommand",
           type: "string",
-          choices: ["set", "rm", "ls", "use", "current"],
+          choices: [
+            SetCommand,
+            RmCommand,
+            LsCommand,
+            UseCommand,
+            CurrentCommand,
+          ],
         })
         .positional("name", {
           description: "API name",
@@ -30,7 +42,7 @@ export function apiCommand(yargs: Argv<{}>) {
           type: "string",
         }),
     async ({ sub, url, name }) => {
-      if (sub === "set") {
+      if (sub === SetCommand) {
         if (!name || !url) {
           console.error("name and url are required");
           return;
@@ -42,7 +54,7 @@ export function apiCommand(yargs: Argv<{}>) {
         return;
       }
 
-      if (sub === "rm") {
+      if (sub === RmCommand) {
         if (!name) {
           console.error("name is required");
           return;
@@ -54,7 +66,7 @@ export function apiCommand(yargs: Argv<{}>) {
         return;
       }
 
-      if (sub === "ls") {
+      if (sub === LsCommand) {
         const config = await listConfig();
 
         if (!Object.keys(config).length) {
@@ -87,7 +99,7 @@ export function apiCommand(yargs: Argv<{}>) {
         return;
       }
 
-      if (sub === "use") {
+      if (sub === UseCommand) {
         if (!name) {
           console.error("name is required");
           return;
@@ -99,7 +111,7 @@ export function apiCommand(yargs: Argv<{}>) {
         return;
       }
 
-      if (sub === "current") {
+      if (sub === CurrentCommand) {
         const currentName = await readConfig<string>(CurrentApi);
         if (!currentName) {
           console.info("Current API not set");

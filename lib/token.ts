@@ -11,6 +11,12 @@ export function createTokenKey(name: string): string {
   return `${ProfilePrefix}${name}`;
 }
 
+const SetCommand = "set";
+const RmCommand = "rm";
+const LsCommand = "ls";
+const UseCommand = "use";
+const CurrentCommand = "curr";
+
 export function tokenCommand(yargs: Argv<{}>) {
   yargs.command(
     "token <sub> [name] [token]",
@@ -20,7 +26,13 @@ export function tokenCommand(yargs: Argv<{}>) {
         .positional("sub", {
           description: "Subcommand",
           type: "string",
-          choices: ["set", "rm", "ls", "use", "current"],
+          choices: [
+            SetCommand,
+            RmCommand,
+            LsCommand,
+            UseCommand,
+            CurrentCommand,
+          ],
         })
         .positional("name", {
           description: "Profile name",
@@ -31,7 +43,7 @@ export function tokenCommand(yargs: Argv<{}>) {
           type: "string",
         }),
     async ({ sub, token, name }) => {
-      if (sub === "set") {
+      if (sub === SetCommand) {
         if (!name || !token) {
           console.error("name and token are required");
           return;
@@ -43,7 +55,7 @@ export function tokenCommand(yargs: Argv<{}>) {
         return;
       }
 
-      if (sub === "rm") {
+      if (sub === RmCommand) {
         if (!name) {
           console.error("name is required");
           return;
@@ -55,7 +67,7 @@ export function tokenCommand(yargs: Argv<{}>) {
         return;
       }
 
-      if (sub === "ls") {
+      if (sub === LsCommand) {
         const config = await listConfig();
 
         if (!Object.keys(config).length) {
@@ -87,7 +99,7 @@ export function tokenCommand(yargs: Argv<{}>) {
         return;
       }
 
-      if (sub === "use") {
+      if (sub === UseCommand) {
         if (!name) {
           console.error("name is required");
           return;
@@ -99,7 +111,7 @@ export function tokenCommand(yargs: Argv<{}>) {
         return;
       }
 
-      if (sub === "current") {
+      if (sub === CurrentCommand) {
         const currentName = await readConfig<string>(CurrentToken);
         if (!currentName) {
           console.info("Current Token not set");
