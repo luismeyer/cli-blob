@@ -9,6 +9,7 @@ export async function setApiUrl() {
 
     if (profile) {
       process.env.VERCEL_BLOB_API_URL = profile;
+      process.env.NEXT_PUBLIC_VERCEL_BLOB_API_URL = profile;
     }
   }
 }

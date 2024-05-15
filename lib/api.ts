@@ -105,6 +105,12 @@ export function apiCommand(yargs: Argv<{}>) {
           return;
         }
 
+        const api = await readConfig<string>(createApiKey(name));
+        if (!api) {
+          console.error("API not found");
+          return;
+        }
+
         await writeConfig(CurrentApi, name);
 
         console.info("Current API updated");

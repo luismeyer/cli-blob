@@ -105,6 +105,12 @@ export function tokenCommand(yargs: Argv<{}>) {
           return;
         }
 
+        const token = await readConfig<string>(createTokenKey(name));
+        if (!token) {
+          console.error("Token not found");
+          return;
+        }
+
         await writeConfig(CurrentToken, name);
 
         console.info("Current Token updated");
