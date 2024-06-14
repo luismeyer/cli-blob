@@ -6,7 +6,7 @@
     "vb": "./index.ts"
   },
   "dependencies": {
-    "@vercel/blob": "^0.22.1",
+    "@vercel/blob": "^0.23.3",
     "console-table-printer": "^2.12.0",
     "ora": "^8.0.1",
     "yargs": "^17.7.2"

@@ -1,6 +1,6 @@
 import { Argv } from "yargs";
 
-import { put } from "@vercel/blob";
+import { put, PutBlobResult } from "@vercel/blob";
 
 import { baseArgs } from "./base-args";
 import { resolveToken } from "./resolve-token";
@@ -9,7 +9,7 @@ import { setApiUrl } from "./set-api-url";
 
 export function putCommand(yargs: Argv<{}>) {
   yargs.command(
-    "put <pathname> <body>",
+    "put <pathname> [body]",
     "Creates a new blob",
     (yargs) =>
       baseArgs(yargs)
@@ -53,8 +53,8 @@ export function putCommand(yargs: Argv<{}>) {
         cacheControlMaxAge,
       } = input;
 
-      if (!pathname || !body) {
-        console.error("pathname and body are required");
+      if (!pathname) {
+        console.error("pathname is required");
         return;
       }
 
@@ -63,23 +63,41 @@ export function putCommand(yargs: Argv<{}>) {
       const token = await resolveToken(input);
       const { fail, success } = sdkInfo(token);
 
-      let uploadBody: string | Buffer | Blob = body;
-
       try {
-        const fileBody = Bun.file(body);
+        let res: PutBlobResult;
 
-        if (await fileBody.exists()) {
-          uploadBody = fileBody;
+        if (isFolder(pathname)) {
+          res = await put(pathname, {
+            access: "public",
+            multipart,
+            addRandomSuffix,
+            contentType,
+            cacheControlMaxAge,
+            token,
+          });
+        } else {
+          if (!body) {
+            console.error("body is required");
+            return;
+          }
+
+          let uploadBody: string | Buffer | Blob = body;
+
+          const fileBody = Bun.file(body);
+
+          if (await fileBody.exists()) {
+            uploadBody = fileBody;
+          }
+
+          res = await put(pathname, uploadBody, {
+            access: "public",
+            multipart,
+            addRandomSuffix,
+            contentType,
+            cacheControlMaxAge,
+            token,
+          });
         }
-
-        const res = await put(pathname, uploadBody, {
-          access: "public",
-          multipart,
-          addRandomSuffix,
-          contentType,
-          cacheControlMaxAge,
-          token,
-        });
 
         success(res);
       } catch (error) {
@@ -87,4 +105,8 @@ export function putCommand(yargs: Argv<{}>) {
       }
     }
   );
+}
+
+function isFolder(pathname: string): pathname is `${string}/` {
+  return pathname.endsWith("/");
 }
