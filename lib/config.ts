@@ -7,7 +7,7 @@ if (!exists) {
   Bun.write(configFile, JSON.stringify({}, null, 2));
 }
 
-export async function listConfig() {
+export async function listConfig(): Promise<Record<string, string>> {
   const file = Bun.file(configFile);
 
   return file.json();

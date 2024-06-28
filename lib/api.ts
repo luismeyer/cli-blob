@@ -2,6 +2,7 @@ import { Table } from "console-table-printer";
 import { Argv } from "yargs";
 
 import { listConfig, readConfig, writeConfig } from "./config";
+import cliSelect from "cli-select";
 
 export const CurrentApi = "current-api";
 export const ApiPrefix = "api-";
@@ -18,7 +19,7 @@ const CurrentCommand = "curr";
 
 export function apiCommand(yargs: Argv<{}>) {
   yargs.command(
-    "api <sub> [name] [url]",
+    "api [sub] [name] [url]",
     "Configure API settings",
     (yargs) =>
       yargs
@@ -42,6 +43,69 @@ export function apiCommand(yargs: Argv<{}>) {
           type: "string",
         }),
     async ({ sub, url, name }) => {
+      if (!sub) {
+        const config = await apiConfig();
+        if (!config) {
+          return;
+        }
+
+        const currentProfile = await currentApiConfig();
+
+        const values = Object.keys(config);
+
+        const colWidths = Object.entries(config).reduce<number[]>(
+          (acc, [key, value]) => {
+            acc[0] = 1;
+            acc[1] = Math.max(acc[1], key.length);
+            acc[2] = Math.max(acc[2], value.length);
+
+            return acc;
+          },
+          [1, 1, 1]
+        );
+
+        const padding = " ".repeat(4);
+
+        function renderCell(index: number, content: string) {
+          const offset = colWidths[index] - content.length;
+          return content + " ".repeat(offset) + padding;
+        }
+
+        function renderRow(data: string[]) {
+          return data
+            .map((content, index) => renderCell(index, content))
+            .join("");
+        }
+
+        console.info("Select an API profile:");
+
+        const { value } = await cliSelect({
+          values,
+          defaultValue: currentProfile
+            ? values.indexOf(currentProfile)
+            : undefined,
+          selected: "",
+          unselected: "",
+          valueRenderer: (key, selected) => {
+            const value = config[key];
+
+            let row = [key, value];
+            if (selected) {
+              row.unshift("◉");
+            } else {
+              row.unshift("◯");
+            }
+
+            return renderRow(row);
+          },
+        });
+
+        await writeConfig(CurrentApi, value);
+
+        console.info("Current API updated: " + value);
+        return;
+      }
+
       if (sub === SetCommand) {
         if (!name || !url) {
           console.error("name and url are required");
@@ -67,31 +131,19 @@ export function apiCommand(yargs: Argv<{}>) {
       }
 
       if (sub === LsCommand) {
-        const config = await listConfig();
-
-        if (!Object.keys(config).length) {
-          console.info("No API config");
+        const config = await apiConfig();
+        if (!config) {
           return;
         }
 
-        const currentProfile = await readConfig<string>(CurrentApi);
-
+        const currentProfile = await currentApiConfig();
         const table = new Table();
 
-        for (let key in config) {
-          if (key.startsWith(ApiPrefix)) {
-            const name = key.substring(ApiPrefix.length);
-
-            table.addRow(
-              {
-                Name: name,
-                URL: config[key],
-              },
-              {
-                color: name === currentProfile ? "green" : "white",
-              }
-            );
-          }
+        for (const key in config) {
+          table.addRow(
+            { Name: key, URL: config[key] },
+            { color: key === currentProfile ? "green" : "white" }
+          );
         }
 
         table.printTable();
@@ -138,4 +190,28 @@ export function apiCommand(yargs: Argv<{}>) {
       }
     }
   );
+}
+
+async function apiConfig() {
+  const config = await listConfig();
+
+  if (!Object.keys(config).length) {
+    console.info("No API config yet");
+    return;
+  }
+
+  let out: Record<string, string> = {};
+  for (let key in config) {
+    if (key.startsWith(ApiPrefix)) {
+      out[key.substring(ApiPrefix.length)] = config[key];
+    }
+  }
+
+  return out;
+}
+
+async function currentApiConfig() {
+  const currentProfile = await readConfig<string>(CurrentApi);
+
+  return currentProfile;
 }
