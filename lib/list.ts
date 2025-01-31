@@ -1,4 +1,4 @@
-import { Argv } from "yargs";
+import type { Argv } from "yargs";
 
 import { list } from "@vercel/blob";
 
@@ -6,7 +6,7 @@ import { resolveToken } from "./resolve-token";
 import { sdkInfo } from "./sdk";
 import { setApiUrl } from "./set-api-url";
 
-export function listCommand(yargs: Argv<{}>) {
+export function listCommand(yargs: Argv) {
   yargs.command(
     "list",
     "List blobs",

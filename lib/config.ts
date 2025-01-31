@@ -1,4 +1,4 @@
-import { resolve } from "path";
+import { resolve } from "node:path";
 
 const configFile = resolve(import.meta.dir, "../blob-cli.json");
 

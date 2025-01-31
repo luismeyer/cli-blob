@@ -1,5 +1,5 @@
 import { Table } from "console-table-printer";
-import { Argv } from "yargs";
+import type { Argv } from "yargs";
 
 import { listConfig, readConfig, writeConfig } from "./config";
 import cliSelect from "cli-select";
@@ -17,7 +17,7 @@ const LsCommand = "ls";
 const UseCommand = "use";
 const CurrentCommand = "curr";
 
-export function apiCommand(yargs: Argv<{}>) {
+export function apiCommand(yargs: Argv) {
   yargs.command(
     "api [sub] [name] [url]",
     "Configure API settings",
@@ -89,7 +89,7 @@ export function apiCommand(yargs: Argv<{}>) {
           valueRenderer: (key, selected) => {
             const value = config[key];
 
-            let row = [key, value];
+            const row = [key, value];
             if (selected) {
               row.unshift("◉");
             } else {
@@ -102,7 +102,7 @@ export function apiCommand(yargs: Argv<{}>) {
 
         await writeConfig(CurrentApi, value);
 
-        console.info("Current API updated: " + value);
+        console.info(`Current API updated: ${value}`);
         return;
       }
 
@@ -200,8 +200,8 @@ async function apiConfig() {
     return;
   }
 
-  let out: Record<string, string> = {};
-  for (let key in config) {
+  const out: Record<string, string> = {};
+  for (const key in config) {
     if (key.startsWith(ApiPrefix)) {
       out[key.substring(ApiPrefix.length)] = config[key];
     }
